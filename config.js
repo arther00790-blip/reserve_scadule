@@ -1,0 +1,2 @@
+const SUPABASE_URL = 'https://alobahjrrtxiiqbkjxyc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsb2JhaGpycnR4aWlxYmtqeHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTcxMDcsImV4cCI6MjA5MDQ3MzEwN30.1hJqj-8-JTwHncZ5dwB3EuoVj5FNOPdl3hdRsZNH91w';
