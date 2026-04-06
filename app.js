@@ -1,3 +1,10 @@
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const SUPABASE_URL = 'https://alobahjrrtxiiqbkjxyc.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFsb2JhaGpycnR4aWlxYmtqeHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTcxMDcsImV4cCI6MjA5MDQ3MzEwN30.1hJqj-8-JTwHncZ5dwB3EuoVj5FNOPdl3hdRsZNH91w';
+
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
 'use strict';
 
 // ============================================================
@@ -58,28 +65,36 @@ async function loadData() {
 }
 
 // ============================================================
-// AUTH
+// AUTH（Supabase Auth版）
 // ============================================================
 
-function login(email, password) {
-  const user = state.users.find(u => u.email === email && u.password === password);
-  if (!user) return false;
-  state.currentUser = user;
-  sessionStorage.setItem('mrs_uid', user.id);
+async function login(email, password) {
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error || !data.user) return false;
+
+  // usersテーブルからrole等を取得
+  const { data: userData } = await db.from('users').select('*').eq('email', email).single();
+  if (!userData) return false;
+
+  state.currentUser = mapUser(userData);
   return true;
 }
 
-function logout() {
+async function logout() {
+  await db.auth.signOut();
   state.currentUser = null;
-  sessionStorage.removeItem('mrs_uid');
   navigate('login');
 }
 
-function restoreSession() {
-  const uid = sessionStorage.getItem('mrs_uid');
-  if (!uid) return false;
-  state.currentUser = state.users.find(u => u.id === uid) || null;
-  return !!state.currentUser;
+async function restoreSession() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) return false;
+
+  const { data: userData } = await db.from('users').select('*').eq('email', session.user.email).single();
+  if (!userData) return false;
+
+  state.currentUser = mapUser(userData);
+  return true;
 }
 
 // ============================================================
@@ -1139,13 +1154,13 @@ async function init() {
   await loadData();
 
   // Login form
-  document.getElementById('login-form').addEventListener('submit', e => {
+  document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
     const email    = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     const errEl    = document.getElementById('login-error');
 
-    if (login(email, password)) {
+    if (await login(email, password)) {
       errEl.style.display = 'none';
       navigate('dashboard');
     } else {
@@ -1173,7 +1188,7 @@ async function init() {
   });
 
   // Restore session or show login
-  if (restoreSession()) navigate('dashboard');
+  if (await restoreSession()) navigate('dashboard');
   else navigate('login');
 }
 
