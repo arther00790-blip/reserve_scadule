@@ -1144,8 +1144,6 @@ function esc(str) {
 // ============================================================
 
 async function init() {
-  await loadData();
-
   // Login form
   document.getElementById('login-form').addEventListener('submit', async e => {
     e.preventDefault();
@@ -1154,6 +1152,7 @@ async function init() {
     const errEl    = document.getElementById('login-error');
 
     if (await login(email, password)) {
+      await loadData();
       errEl.style.display = 'none';
       navigate('dashboard');
     } else {
@@ -1181,8 +1180,12 @@ async function init() {
   });
 
   // Restore session or show login
-  if (await restoreSession()) navigate('dashboard');
-  else navigate('login');
+  if (await restoreSession()) {
+    await loadData();
+    navigate('dashboard');
+  } else {
+    navigate('login');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
