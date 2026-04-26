@@ -1,5 +1,13 @@
 'use strict';
 
+(function() {
+  const link = document.createElement('link');
+  link.rel = 'icon';
+  link.type = 'image/svg+xml';
+  link.href = 'favicon.svg';
+  document.head.appendChild(link);
+})();
+
 // ============================================================
 // MAPPERS  (DB snake_case → JS camelCase)
 // ============================================================
