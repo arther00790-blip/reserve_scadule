@@ -386,13 +386,15 @@ function renderSlotRows(slots) {
             ${s.status === 'published' ? '公開中' : '下書き'}
           </span>
         </td>
-        <td class="action-cell">
-          <button class="btn btn-sm btn-outline slot-toggle" data-id="${s.id}">
-            ${s.status === 'published' ? '非公開' : '公開'}
-          </button>
-          <button class="btn btn-sm btn-outline slot-edit" data-id="${s.id}">編集</button>
-          <button class="btn btn-sm btn-outline slot-duplicate" data-id="${s.id}">複製</button>
-          <button class="btn btn-sm btn-danger slot-delete" data-id="${s.id}">削除</button>
+        <td>
+          <div class="action-cell">
+            <button class="btn btn-sm btn-outline slot-toggle" data-id="${s.id}">
+              ${s.status === 'published' ? '非公開' : '公開'}
+            </button>
+            <button class="btn btn-sm btn-outline slot-edit" data-id="${s.id}">編集</button>
+            <button class="btn btn-sm btn-outline slot-duplicate" data-id="${s.id}">複製</button>
+            <button class="btn btn-sm btn-danger slot-delete" data-id="${s.id}">削除</button>
+          </div>
         </td>
       </tr>
     `;
