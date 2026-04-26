@@ -163,6 +163,7 @@ function renderShell() {
   nav.querySelectorAll('.nav-item').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
+      document.getElementById('app-shell').classList.remove('sidebar-open');
       navigate(a.dataset.view);
     });
   });
@@ -318,7 +319,7 @@ function renderDashboard() {
 function renderSlotManagement() {
   setPageTitle('候補日程管理', '打ち合わせスロットの登録・編集・削除');
   document.getElementById('header-actions').innerHTML = `
-    <button class="btn btn-primary" id="add-slot-btn">＋ 新規スロット登録</button>
+    <button class="btn btn-primary" id="add-slot-btn">＋ 新規登録</button>
   `;
   document.getElementById('add-slot-btn').addEventListener('click', () => openSlotModal());
 
@@ -695,7 +696,7 @@ function closeModal() {
 // ----- SLOT MODAL -----
 function openSlotModal(slotId = null) {
   const slot  = slotId ? state.slots.find(s => s.id === slotId) : null;
-  const title = slot ? 'スロットを編集' : '新規スロット登録';
+  const title = slot ? 'スロットを編集' : '新規登録';
 
   openModal(title, `
     <form id="slot-form" novalidate>
@@ -729,13 +730,6 @@ function openSlotModal(slotId = null) {
           <textarea id="sf-notes" rows="3" placeholder="補足説明など">${slot ? esc(slot.notes) : ''}</textarea>
         </div>
         <div class="form-field">
-          <label>面談方法 <span class="required">*</span></label>
-          <select id="sf-method">
-            <option value="対面"              ${!slot || slot.method === '対面'              ? 'selected' : ''}>対面</option>
-            <option value="Web面談（GoogleMeet）" ${slot && slot.method === 'Web面談（GoogleMeet）' ? 'selected' : ''}>Web面談（GoogleMeet）</option>
-          </select>
-        </div>
-        <div class="form-field">
           <label>ステータス</label>
           <select id="sf-status">
             <option value="draft"     ${slot && slot.status === 'draft'      ? 'selected' : ''}>下書き（非公開）</option>
@@ -761,7 +755,6 @@ function openSlotModal(slotId = null) {
       capacity:  parseInt(document.getElementById('sf-capacity').value, 10),
       notes:     document.getElementById('sf-notes').value.trim(),
       status:    document.getElementById('sf-status').value,
-      method:    document.getElementById('sf-method').value,
     };
 
     if (!data.title || !data.theme || !data.date || !data.startTime || !data.endTime) {
@@ -774,7 +767,6 @@ function openSlotModal(slotId = null) {
         title: data.title, theme: data.theme, date: data.date,
         start_time: data.startTime, end_time: data.endTime,
         capacity: data.capacity, notes: data.notes, status: data.status,
-        method: data.method,
       }).eq('id', slot.id);
       if (error) { showToast('エラーが発生しました', 'error'); return; }
       Object.assign(slot, data);
@@ -1168,6 +1160,14 @@ async function init() {
       document.getElementById('login-password').value = btn.dataset.pass;
       document.getElementById('login-form').requestSubmit();
     });
+  });
+
+  // Hamburger menu (mobile)
+  document.getElementById('hamburger-btn').addEventListener('click', () => {
+    document.getElementById('app-shell').classList.toggle('sidebar-open');
+  });
+  document.getElementById('sidebar-overlay').addEventListener('click', () => {
+    document.getElementById('app-shell').classList.remove('sidebar-open');
   });
 
   // Logout
