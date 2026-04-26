@@ -233,7 +233,7 @@ function renderDashboard() {
                   const cnt = activeCount(s.id);
                   const pct = Math.min(100, cnt / s.capacity * 100);
                   return `<tr>
-                    <td>${formatDate(s.date)}<br><small>${s.startTime}〜${s.endTime}</small></td>
+                    <td>${formatDate(s.date)}<br><small>${formatTime(s.startTime)}〜${formatTime(s.endTime)}</small></td>
                     <td><strong>${s.title}</strong><br><small>${s.theme}</small></td>
                     <td>
                       <div class="capacity-bar-wrap">
@@ -291,7 +291,7 @@ function renderDashboard() {
                   <div class="reservation-date">${formatDateShort(r.slot.date)}</div>
                   <div class="reservation-info" style="flex:1">
                     <div class="reservation-title">${r.slot.title}</div>
-                    <div class="reservation-meta">${r.slot.startTime}〜${r.slot.endTime} ／ ${r.slot.theme}</div>
+                    <div class="reservation-meta">${formatTime(r.slot.startTime)}〜${formatTime(r.slot.endTime)} ／ ${r.slot.theme}</div>
                     <div class="reservation-method">
                       ${r.method === 'web'
                         ? `<span class="badge badge-blue">Web</span>${r.meetUrl ? ` <a href="${r.meetUrl}" target="_blank" class="meet-link">Google Meet</a>` : ''}`
@@ -312,7 +312,7 @@ function renderDashboard() {
             ${newSlots.slice(0, 3).map(s => `
               <div class="slot-chip">
                 <strong>${s.title}</strong>
-                <span>${formatDate(s.date)} ${s.startTime}〜${s.endTime}</span>
+                <span>${formatDate(s.date)} ${formatTime(s.startTime)}〜${formatTime(s.endTime)}</span>
                 <button class="btn btn-sm btn-primary" onclick="openReservationModal('${s.id}')">予約する</button>
               </div>
             `).join('')}
@@ -371,7 +371,7 @@ function renderSlotRows(slots) {
     const pct = Math.min(100, cnt / s.capacity * 100);
     return `
       <tr>
-        <td>${formatDate(s.date)}<br><small>${s.startTime}〜${s.endTime}</small></td>
+        <td>${formatDate(s.date)}<br><small>${formatTime(s.startTime)}〜${formatTime(s.endTime)}</small></td>
         <td><strong>${s.title}</strong><br><small>${s.theme}</small></td>
         <td>
           <div class="capacity-bar-wrap">
@@ -447,55 +447,27 @@ function renderSlotList() {
 
   main.innerHTML = `
     <div class="section-card">
-      <div class="table-scroll"><table class="data-table">
-        <thead><tr>
-          <th>日程</th>
-          <th>タイトル / テーマ</th>
-          <th>定員 / 残り</th>
-          <th>備考</th>
-          <th>ステータス</th>
-          <th>操作</th>
-        </tr></thead>
-        <tbody>
-          ${slots.map(s => {
-            const cnt    = activeCount(s.id);
-            const isFull = cnt >= s.capacity;
-            const myR    = myRes.find(r => r.slotId === s.id && r.status !== 'cancelled');
-            const pct    = Math.min(100, cnt / s.capacity * 100);
-            return `
-              <tr>
-                <td>${formatDate(s.date)}<br><small>${s.startTime}〜${s.endTime}</small></td>
-                <td><strong>${s.title}</strong><br><small>${s.theme}</small></td>
-                <td>
-                  <div class="capacity-bar-wrap">
-                    <div class="capacity-bar-track">
-                      <div class="capacity-bar-fill ${pct >= 100 ? 'full' : pct >= 70 ? 'warn' : ''}" style="width:${pct}%"></div>
-                    </div>
-                    <span class="capacity-text">残り${s.capacity - cnt}名（${cnt}/${s.capacity}名）</span>
-                  </div>
-                </td>
-                <td>${s.notes ? esc(s.notes) : '<span style="color:var(--text-muted)">—</span>'}</td>
-                <td>
-                  ${isFull
-                    ? '<span class="badge badge-red">満員</span>'
-                    : '<span class="badge badge-green">空きあり</span>'}
-                </td>
-                <td>
-                  <div class="action-cell">
-                    ${myR
-                      ? `<span class="badge badge-blue">予約済み</span>
-                         <span class="badge ${statusBadgeClass(myR.status)}">${statusLabel(myR.status)}</span>
-                         ${myR.meetUrl ? `<a href="${myR.meetUrl}" target="_blank" class="btn btn-sm btn-outline">Meet</a>` : ''}`
-                      : isFull
-                        ? `<button class="btn btn-sm btn-disabled" disabled>満員</button>`
-                        : `<button class="btn btn-sm btn-primary reserve-btn" data-slot-id="${s.id}">予約する</button>`}
-                  </div>
-                </td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table></div>
+      <div class="new-slots">
+        ${slots.map(s => {
+          const cnt    = activeCount(s.id);
+          const isFull = cnt >= s.capacity;
+          const myR    = myRes.find(r => r.slotId === s.id && r.status !== 'cancelled');
+          return `
+            <div class="slot-chip">
+              <strong>${esc(s.title)}</strong>
+              <span>${formatDate(s.date)} ${formatTime(s.startTime)}〜${formatTime(s.endTime)}${s.theme ? ' ／ ' + esc(s.theme) : ''}</span>
+              <span class="capacity-text">残り${s.capacity - cnt}名（${cnt}/${s.capacity}名）</span>
+              ${myR
+                ? `<span class="badge badge-blue">予約済み</span>
+                   <span class="badge ${statusBadgeClass(myR.status)}">${statusLabel(myR.status)}</span>
+                   ${myR.meetUrl ? `<a href="${myR.meetUrl}" target="_blank" class="btn btn-sm btn-outline">Meet</a>` : ''}`
+                : isFull
+                  ? `<button class="btn btn-sm btn-disabled" disabled>満員</button>`
+                  : `<button class="btn btn-sm btn-primary reserve-btn" data-slot-id="${s.id}">予約する</button>`}
+            </div>
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
 
@@ -542,7 +514,7 @@ function renderMyReservations() {
         <tbody>
           ${reservations.map(r => `
             <tr class="${r.status === 'cancelled' ? 'row-cancelled' : ''}">
-              <td>${formatDate(r.slot.date)}<br><small>${r.slot.startTime}〜${r.slot.endTime}</small></td>
+              <td>${formatDate(r.slot.date)}<br><small>${formatTime(r.slot.startTime)}〜${formatTime(r.slot.endTime)}</small></td>
               <td><strong>${r.slot.title}</strong><br><small>${r.slot.theme}</small></td>
               <td>
                 ${r.method === 'web'
@@ -591,7 +563,7 @@ function renderReservationStatus() {
         <div class="slot-header-row">
           <div>
             <h3 class="slot-section-title">${s.title}</h3>
-            <p class="slot-section-meta">${formatDate(s.date)} ${s.startTime}〜${s.endTime} ／ ${s.theme}</p>
+            <p class="slot-section-meta">${formatDate(s.date)} ${formatTime(s.startTime)}〜${formatTime(s.endTime)} ／ ${s.theme}</p>
           </div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
             <span class="badge ${s.status === 'published' ? 'badge-green' : 'badge-gray'}">
@@ -820,7 +792,7 @@ function openReservationModal(slotId) {
   openModal('打ち合わせを予約する', `
     <div class="reservation-slot-info">
       <h3>${slot.title}</h3>
-      <p>${formatDate(slot.date)}　${slot.startTime}〜${slot.endTime}</p>
+      <p>${formatDate(slot.date)}　${formatTime(slot.startTime)}〜${formatTime(slot.endTime)}</p>
       <p>${slot.theme}</p>
     </div>
     <form id="reservation-form" novalidate>
@@ -1114,6 +1086,10 @@ function showToast(message, type = 'success') {
 // ============================================================
 
 const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
+
+function formatTime(timeStr) {
+  return timeStr ? timeStr.slice(0, 5) : '';
+}
 
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
