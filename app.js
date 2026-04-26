@@ -445,46 +445,59 @@ function renderSlotList() {
     return;
   }
 
-  main.innerHTML = `<div class="slot-cards">${slots.map(s => {
-    const cnt   = activeCount(s.id);
-    const isFull = cnt >= s.capacity;
-    const myR   = myRes.find(r => r.slotId === s.id && r.status !== 'cancelled');
-    const pct   = Math.min(100, cnt / s.capacity * 100);
-    return `
-      <div class="slot-card ${isFull && !myR ? 'slot-card-full' : ''}">
-        <div class="slot-card-header">
-          <div>
-            <div class="slot-date">${formatDate(s.date)}</div>
-            <div class="slot-time">${s.startTime} 〜 ${s.endTime}</div>
-          </div>
-          ${isFull
-            ? '<span class="badge badge-red">満員</span>'
-            : '<span class="badge badge-green">空きあり</span>'}
-        </div>
-        <h3 class="slot-title">${s.title}</h3>
-        <p class="slot-theme">${s.theme}</p>
-        <p class="slot-theme"><span class="badge ${s.method === 'Web面談（GoogleMeet）' ? 'badge-blue' : 'badge-green'}">${s.method}</span></p>
-        ${s.notes ? `<p class="slot-notes">${s.notes}</p>` : ''}
-        <div class="slot-capacity">
-          <div class="progress-bar">
-            <div class="progress-fill ${pct >= 100 ? 'full' : pct >= 70 ? 'warn' : ''}" style="width:${pct}%"></div>
-          </div>
-          <span class="capacity-text">残り${s.capacity - cnt}名（${cnt}/${s.capacity}名）</span>
-        </div>
-        <div class="slot-card-footer">
-          ${myR
-            ? `<span class="badge badge-blue">予約済み</span>
-               <span class="badge ${statusBadgeClass(myR.status)}">${statusLabel(myR.status)}</span>
-               ${myR.method === 'web' && myR.meetUrl
-                 ? `<a href="${myR.meetUrl}" target="_blank" class="btn btn-sm btn-outline">Meet</a>`
-                 : ''}`
-            : isFull
-              ? `<button class="btn btn-sm btn-disabled" disabled>満員</button>`
-              : `<button class="btn btn-sm btn-primary reserve-btn" data-slot-id="${s.id}">予約する</button>`}
-        </div>
-      </div>
-    `;
-  }).join('')}</div>`;
+  main.innerHTML = `
+    <div class="section-card">
+      <div class="table-scroll"><table class="data-table">
+        <thead><tr>
+          <th>日程</th>
+          <th>タイトル / テーマ</th>
+          <th>定員 / 残り</th>
+          <th>備考</th>
+          <th>ステータス</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody>
+          ${slots.map(s => {
+            const cnt    = activeCount(s.id);
+            const isFull = cnt >= s.capacity;
+            const myR    = myRes.find(r => r.slotId === s.id && r.status !== 'cancelled');
+            const pct    = Math.min(100, cnt / s.capacity * 100);
+            return `
+              <tr>
+                <td>${formatDate(s.date)}<br><small>${s.startTime}〜${s.endTime}</small></td>
+                <td><strong>${s.title}</strong><br><small>${s.theme}</small></td>
+                <td>
+                  <div class="capacity-bar-wrap">
+                    <div class="capacity-bar-track">
+                      <div class="capacity-bar-fill ${pct >= 100 ? 'full' : pct >= 70 ? 'warn' : ''}" style="width:${pct}%"></div>
+                    </div>
+                    <span class="capacity-text">残り${s.capacity - cnt}名（${cnt}/${s.capacity}名）</span>
+                  </div>
+                </td>
+                <td>${s.notes ? esc(s.notes) : '<span style="color:var(--text-muted)">—</span>'}</td>
+                <td>
+                  ${isFull
+                    ? '<span class="badge badge-red">満員</span>'
+                    : '<span class="badge badge-green">空きあり</span>'}
+                </td>
+                <td>
+                  <div class="action-cell">
+                    ${myR
+                      ? `<span class="badge badge-blue">予約済み</span>
+                         <span class="badge ${statusBadgeClass(myR.status)}">${statusLabel(myR.status)}</span>
+                         ${myR.meetUrl ? `<a href="${myR.meetUrl}" target="_blank" class="btn btn-sm btn-outline">Meet</a>` : ''}`
+                      : isFull
+                        ? `<button class="btn btn-sm btn-disabled" disabled>満員</button>`
+                        : `<button class="btn btn-sm btn-primary reserve-btn" data-slot-id="${s.id}">予約する</button>`}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table></div>
+    </div>
+  `;
 
   document.querySelectorAll('.reserve-btn').forEach(btn => {
     btn.addEventListener('click', () => openReservationModal(btn.dataset.slotId));
